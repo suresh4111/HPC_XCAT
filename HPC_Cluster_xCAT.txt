@@ -1,0 +1,67 @@
+1.launch VM with configuration:
+  Ram 2GB
+  prcessor 2
+  core 2 
+  HDD 40GB
+  Network 2 (1 NAT, 1 Custom Host(disable DHCP))
+2. Provide manual IP
+	# nmtui
+3. Check IP
+	#ip a
+4. Stop and Disable Firewall
+	#systemctl stop firewalld
+	#systemctl disable firewalld
+	#systemctl status firewalld
+5. Disable Selinux
+	#vim /etc/selinux/config
+      #sestatus
+6. Install Utilities
+	#yum install yum-utils
+7. Download XCAT core/dep repo and Install xCAT 
+	#wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+   	#wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+   	#yum install xCAT
+8. Set System Envornment
+	#. /etc/profile.d/xcat.sh
+	#echo $PATH
+9.  set Interface and IP
+	#chdef -t site dhcpinterfaces="ens34"
+   	#chdef -t site master="192.168.20.20"
+   	#tabdump site | grep master
+   	#tabdump site | grep dhcp
+10. Copy ISO file
+	#dd if=/dev/sr0 of=/root/centos7.iso
+	#copycds /root/centos7.iso
+	#lsdef -t osimage
+11. Generate Image	
+	#genimage centos7.9-x86_64-netboot-compute
+12. Make Directory and add files
+	#mkdir -p /install/custom/netboot
+   	#chdef -t osimage centos7.9-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+   	#echo "/etc/passwd -> /etc/passwd" > /install/custom/netboot/compute.synclist
+   	#echo "/etc/shadow -> /etc/shadow" >> /install/custom/netboot/compute.synclist
+   	#echo "/etc/gshadow -> /etc/gshadow" >> /install/custom/netboot/compute.synclist
+   	#echo "/etc/group -> /etc/group" >> /install/custom/netboot/compute.synclist
+   	#echo "/etc/hosts -> /etc/hosts" >> /install/custom/netboot/compute.synclist
+13. Pack Image
+	#packimage centos7.9-x86_64-netboot-compute
+14. Create VM with Configuration
+	Ram 1GB
+	Process - 1 core 1
+	HDD 20GB
+	Network 1(Custom Host as Master's Custom Host)
+15. Copy MAC add of that new cluster and Assign 
+	#mkdef -t node cn00 groups=compute,all ip=192.168.20.25 mac=00:0c:29:6c:fb:a4 netboot=xnba	
+	#lsdef cn00
+	#chdef -t group compute provmethod=centos7.9-x86_64-netboot-compute
+   	#chdef -t site domain=xcat.in
+16. Create
+	#makehosts
+   	#makenetworks
+   	#makedhcp -n
+   	#makedns -n
+   	#nodeset compute osimage=centos7.9-x86_64-netboot-compute
+17. Restart DHCPD   	
+	#systemctl restart dhcpd
+
+
